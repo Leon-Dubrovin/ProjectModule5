@@ -31,7 +31,6 @@ class UrTube:
                 #print(f'Добро пожаловать, {nickname}.')
                 return
         print('Пользователь не найден. Проверьте правильность имени или зарегистрируйтесь.')
-        return
     def register(self,nickname, password, age):
         for user_ in self.users:
             if user_.nickname == nickname:
@@ -40,37 +39,36 @@ class UrTube:
         self.current_user = User(nickname, password, age)
         self.users.append(self.current_user)
         #print(f'Добро пожаловать, {nickname}.')
-        return
     def log_out(self):
         self.current_user = None
     def add(self, *args: Video):
         for video_ in args:
             if not video_ in self:
                 self.videos.append(video_)
-        return
     def get_videos(self, search_word:str):
-        UCase_search_word = search_word.upper()
+        ucase_search_word = search_word.upper()
         founded_titles = []
         for self_video in self.videos:
-            if UCase_search_word in self_video.title.upper():
+            if ucase_search_word in self_video.title.upper():
                 founded_titles.append(self_video.title)
         return founded_titles
     def watch_video(self, title):
         if self.current_user == None:
             print('Войдите в аккаунт, чтобы смотреть видео')
-            return
-        for self_video in self.videos:
-            if title == self_video.title:
-                if self_video.adult_mode and self.current_user.age < 18:
-                    print('Вам нет 18 лет, пожалуйста покиньте страницу')
-                    return
-                while self_video.time_now < self_video.duration:
-                    sleep(0)
-                    self_video.time_now += 1
-                    print(self_video.time_now, end = ' ')
-                print('Конец видео')
-                self_video.time_now = 0
-                return
+        else:
+            for self_video in self.videos:
+                if title == self_video.title:
+                    if self_video.adult_mode and self.current_user.age < 18:
+                        print('Вам нет 18 лет, пожалуйста покиньте страницу')
+                        break
+                    else:
+                        while self_video.time_now < self_video.duration:
+                            sleep(1)
+                            self_video.time_now += 1
+                            print(self_video.time_now, end = ' ')
+                        print('Конец видео')
+                        self_video.time_now = 0
+                        break
 
 if __name__ == "__main__":
     ur = UrTube()
