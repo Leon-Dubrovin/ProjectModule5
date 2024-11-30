@@ -1,4 +1,5 @@
 from time import sleep
+from multipledispatch import dispatch
 
 class User:
     def __init__(self, nickname, password, age):
@@ -16,59 +17,65 @@ class Video:
         self. adult_mode = adult_mode
 class UrTube:
     def __init__(self):
-        self.users = []
-        self.videos = []
+        self.users = {}
+        self.videos = {}
         self.current_user = None
+
+    @dispatch()
     def __contains__(self, video_:Video):
-        for self_video in self.videos:
-            if video_.title == self_video.title:
-                return True
-        return False
+        if self.videos.get(video_.title):
+            return True
+        else:
+            return False
+
+    @dispatch()
+    def __contains__(self, user_: User):
+        if self.users.get(user_.nickname):
+            return True
+        else:
+            return False
+
     def log_in(self, nickname, password):
-        for user_ in self.users:
-            if user_.nickname == nickname and user_.password == hash(password):
-                current_user = user_
-                #print(f'Добро пожаловать, {nickname}.')
-                return
-        print('Пользователь не найден. Проверьте правильность имени или зарегистрируйтесь.')
+        checking_user = self.users.get(nickname)
+        if checking_user and checking_user.password ==  hash(password):
+            current_user = checking_user
+        else:
+            print('Пользователь не найден. Проверьте правильность имени или зарегистрируйтесь.')
     def register(self,nickname, password, age):
-        for user_ in self.users:
-            if user_.nickname == nickname:
-                print(f'Пользователь {nickname} уже существует')
-                return
-        self.current_user = User(nickname, password, age)
-        self.users.append(self.current_user)
-        #print(f'Добро пожаловать, {nickname}.')
+        if self.users.get(nickname):
+            print(f'Пользователь {nickname} уже существует')
+        else:
+            self.current_user = User(nickname, password, age)
+            self.users[nickname] = self.current_user
+
     def log_out(self):
         self.current_user = None
     def add(self, *args: Video):
         for video_ in args:
             if not video_ in self:
-                self.videos.append(video_)
+                self.videos[video_.title] = video_
     def get_videos(self, search_word:str):
         ucase_search_word = search_word.upper()
         founded_titles = []
-        for self_video in self.videos:
-            if ucase_search_word in self_video.title.upper():
-                founded_titles.append(self_video.title)
+        for self_video_title in self.videos.keys():
+            if ucase_search_word in self_video_title.upper():
+                founded_titles.append(self_video_title)
         return founded_titles
     def watch_video(self, title):
         if self.current_user == None:
             print('Войдите в аккаунт, чтобы смотреть видео')
         else:
-            for self_video in self.videos:
-                if title == self_video.title:
-                    if self_video.adult_mode and self.current_user.age < 18:
+            watching_video = self.videos.get(title)
+            if watching_video:
+                    if watching_video.adult_mode and self.current_user.age < 18:
                         print('Вам нет 18 лет, пожалуйста покиньте страницу')
-                        break
                     else:
-                        while self_video.time_now < self_video.duration:
+                        while watching_video.time_now < watching_video.duration:
                             sleep(1)
-                            self_video.time_now += 1
-                            print(self_video.time_now, end = ' ')
+                            watching_video.time_now += 1
+                            print(watching_video.time_now, end = ' ')
                         print('Конец видео')
-                        self_video.time_now = 0
-                        break
+                        watching_video.time_now = 0
 
 if __name__ == "__main__":
     ur = UrTube()
